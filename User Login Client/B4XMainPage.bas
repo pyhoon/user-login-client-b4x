@@ -1,5 +1,5 @@
 ﻿B4A=true
-Group=Default Group
+Group=Main
 ModulesStructureVersion=1
 Type=Class
 Version=9.85
@@ -12,20 +12,14 @@ Version=9.85
 'Ctrl + click to export as zip: ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private Root As B4XView
-	#If B4J
-	Private fx As JFX
-	#End If	
+	Private Root As B4XView	
 	Private xui As XUI
 	Private KVS As KeyValueStore
 	Private Drawer As B4XDrawer
 	Private B4XGifView1 As B4XGifView
-	Public PageUser As B4XPageUser
-	Public PagePassword As B4XPagePassword
 	Private CLVL As CustomListView
 	Private CLVM As CustomListView
 	Private pnlTop As B4XView
-	Private lblProfileName As B4XView
 	Private lblMenuIcon As B4XView
 	Private lblMenuText As B4XView
 	Private pnlStatus As B4XView
@@ -37,52 +31,43 @@ Sub Class_Globals
 	Private lblViewUserLocation As B4XView
 	Private txtViewUserLocation As B4XView
 	Private lblViewUserStatus As B4XView
+	Private Retry As Boolean
+	Public lblProfileName As B4XView
+	Public UserLoginPage As B4XPageUserLogin
+	Public UserProfilePage As B4XPageUserProfile
+	Public UserRegisterPage As B4XPageUserRegister
+	Public ChangePasswordPage As B4XPageChangePassword
+	Public ResetpasswordPage As B4XPageResetPassword
 End Sub
 
 Public Sub Initialize
+	'B4XPages.GetManager.LogEvents = True
 	xui.SetDataFolder("KVS")
 	KVS.Initialize(xui.DefaultFolder, "kvs.dat")
 End Sub
 
 Private Sub B4XPage_Created (Root1 As B4XView)	
 	Root = Root1
-	Wait For (ShowSplashScreen) Complete (Unused As Boolean)	
+	Wait For (ShowSplashScreen) Complete (Unused As Boolean)
 	Root.RemoveAllViews
-	
-	B4XPages.SetTitle(Me, "APP")
+	B4XPages.SetTitle(Me, "App")
 	Drawer.Initialize(Me, "Drawer", Root, 400dip)
 	Drawer.LeftPanel.LoadLayout("LeftMenu")
-	Drawer.CenterPanel.LoadLayout("HomePage")
+	Drawer.CenterPanel.LoadLayout("MainPage")
 	
-	Wait For (KVS.GetMapAsync(Array("Name", "Email", "Location", "ApiKey", "Token"))) Complete (M As Map)
-	If M.IsInitialized Then
-		Main.User.Initialize
-		Main.User.Name = M.GetDefault("Name", "")
-		Main.User.Email = M.GetDefault("Email", "")
-		Main.User.Location = M.GetDefault("Location", "")
-		Main.User.APIKey = M.GetDefault("ApiKey", "")
-		Main.User.Token = M.GetDefault("Token", "")
-	End If
-
 	LoadSlideMenu
-	If Main.User.Token.EqualsIgnoreCase("") = False Then
+	If Retry Then
 		GetUserList
 	End If
-	
-	PageUser.Initialize
-	B4XPages.AddPage("Login", PageUser)
-	B4XPages.AddPage("Register", PageUser)	
-	B4XPages.AddPage("About", PageUser)
-	
-	PagePassword.Initialize
-	B4XPages.AddPage("PasswordChange", PagePassword)
-	B4XPages.AddPage("PasswordReset", PagePassword)
 End Sub
 
 Private Sub B4XPage_Appear
-	If Main.User.IsInitialized And Main.User.Token.EqualsIgnoreCase("") = False Then
-		GetUserList
+	If lblProfileName.IsInitialized And Not(Main.User.Name = Null) Then lblProfileName.Text = Main.User.Name
+	If Main.User.IsInitialized = False Then
+		Retry = True
+		Return
 	End If
+	GetUserList
 End Sub
 
 Private Sub B4XPage_Resize (Width As Int, Height As Int)
@@ -94,9 +79,32 @@ Sub ShowSplashScreen As ResumableSub
 	Main.NavControl.NavigationBarVisible = False
 	#End If	
 	Root.LoadLayout("Splash")
-	B4XPages.SetTitle(Me, "App")
+	B4XPages.SetTitle(Me, "Loading...")
 	B4XGifView1.SetGif(File.DirAssets, "loading.gif")
-	Sleep(2000)
+	'Sleep(2000)
+	
+	UserLoginPage.Initialize
+	UserProfilePage.Initialize
+	UserRegisterPage.Initialize
+	B4XPages.AddPage("UserLogin", UserLoginPage)
+	B4XPages.AddPage("UserProfile", UserProfilePage)
+	B4XPages.AddPage("UserRegister", UserRegisterPage)
+	
+	ChangePasswordPage.Initialize
+	ResetpasswordPage.Initialize
+	B4XPages.AddPage("ChangePassword", ChangePasswordPage)
+	B4XPages.AddPage("ResetPassword", ResetpasswordPage)
+	
+	Wait For (KVS.GetMapAsync(Array("Name", "Email", "Location", "ApiKey", "Token"))) Complete (M As Map)
+	If M.IsInitialized Then
+		Main.User.Initialize
+		Main.User.Name = M.GetDefault("Name", "")
+		Main.User.Email = M.GetDefault("Email", "")
+		Main.User.Location = M.GetDefault("Location", "")
+		Main.User.APIKey = M.GetDefault("ApiKey", "")
+		Main.User.Token = M.GetDefault("Token", "")
+	End If
+	
 	Return True
 End Sub
 
@@ -105,12 +113,16 @@ Sub GetToken As ResumableSub
 	Try
 		Log("[B4XMainPage] GetToken")
 		'Utility.ShowProgressDialog("Refreshing User Token...")
+		'Log(Main.User)
+		'For Each key As String In KVS.ListKeys
+		'	Log(key & ":" & KVS.Get(key))
+		'Next
+
 		Dim data As Map = CreateMap("email": Main.User.Email, "apikey": Main.User.ApiKey)
 		Dim job As HttpJob
 		job.Initialize("", Me)
 		job.PostString(Main.strURL & "users/token", data.As(JSON).ToString)
 		Wait For (job) JobDone(job As HttpJob)
-		'Utility.HideProgressDialog
 		If job.Success Then
 			Dim Map1 As Map = job.GetString.As(JSON).ToMap
 			If Map1.Get("s") = "error" Then
@@ -118,16 +130,13 @@ Sub GetToken As ResumableSub
 			Else
 				Dim result As List = Map1.Get("r")
 				Dim user As Map = result.Get(0)
-				Main.User.Token = user.Get("user_token")
-				'Log(Main.User.Token)
-				' Write to internal storage
-				Wait For (KVS.PutMapAsync(CreateMap("Token": Main.User.Token))) Complete (WriteSuccess As Boolean)
-				Success = True
+				Main.User.Token = user.Get("token")
+				'Log("Token=" & Main.User.Token)
+				Dim user As Map = CreateMap("Token": Main.User.Token)
+				Wait For (KVS.PutMapAsync(user)) Complete (Success As Boolean)
 				'For Each key As String In KVS.ListKeys
 				'	Log(key & ":" & KVS.Get(key))
 				'Next
-				LoadSlideMenu
-				GetUserList
 			End If
 		Else
 			ShowConnectionError(job.ErrorMessage)
@@ -140,39 +149,66 @@ Sub GetToken As ResumableSub
 	Return Success
 End Sub
 
+' This is just an example
+' You can load other content
 Sub GetUserList
 	Try
 		Log("[B4XMainPage] GetUserList")
-		'Utility.ShowProgressDialog("Retrieving user list...")
-					
+		If Main.User.IsInitialized = False Then
+			Log("User not initialized")
+			Return
+		End If
+		
+		If Main.User.Token = Null Or Main.User.Token.EqualsIgnoreCase("") Then
+			If Main.User.ApiKey = Null Or Main.User.ApiKey.EqualsIgnoreCase("") Then
+				Log("No Api key")
+				Drawer.LeftOpen = True
+				Return
+			End If
+			Log("No Token")
+			' Refreshing token
+			Wait For (GetToken) Complete (Success As Boolean)
+			Log("GetToken=" & Success)
+			' Retry
+			If Success Then
+				Log("Retrying GetUserList...")
+				GetUserList
+			End If
+			Return
+		End If
+
 		Dim job As HttpJob
 		job.Initialize("", Me)
 		job.Download(Main.strURL & "users/list")
 		job.GetRequest.SetHeader("Authorization", "Bearer " & Main.User.Token)
 		Wait For (job) JobDone(job As HttpJob)
-		'Utility.HideProgressDialog
 		If job.Success Then
 			Dim result As Map = job.GetString.As(JSON).ToMap
 			If result.Get("s") = "error" Then
-				xui.MsgboxAsync(result.Get("e"), "E R R O R")
-				' Retry
-				Log(result.Get("a"))
 				If 401 = result.Get("a") Then
+					Log("Invalid token")
+					' Refreshing token
 					Wait For (GetToken) Complete (Success As Boolean)
 					Log(Success)
+					' Retry
+					If Success Then
+						GetUserList
+					End If
+					Return
 				End If
+				xui.MsgboxAsync(result.Get("e"), "E R R O R")
 				Return
 			End If
 			
 			CLVM.Clear
 			Dim users As List = result.Get("r")
 			For Each user As Map In users
-				Dim strUserName As String = user.Get("user_name")
-				Dim strUserEmail As String = user.Get("user_email")
+				Dim strUserName As String = user.Get("name")
+				Dim strUserEmail As String = user.Get("email")
 				Dim strUserStatus As String = user.Get("online")
 				Dim intUserLastOnline As Int = user.Get("last_online")
 				Dim HowLong As String
-				'Log(intUserLastOnline)
+
 				If intUserLastOnline < 600 Then
 					If intUserLastOnline > 60 Then
 						intUserLastOnline = intUserLastOnline / 60
@@ -196,15 +232,12 @@ End Sub
 Sub GetUserInfo(user_email As String)
 	Try
 		Log("[B4XMainPage] GetUserInfo")
-		'Utility.ShowProgressDialog("Retrieving data...")
-		
 		Dim jsn As Map = CreateMap("email": user_email)
 		Dim job As HttpJob
 		job.Initialize("", Me)
 		job.PostString(Main.strURL & "users/profile", jsn.As(JSON).ToString)
 		job.GetRequest.SetHeader("Authorization", "Bearer " & Main.User.Token)
 		Wait For (job) JobDone(job As HttpJob)
-		'Utility.HideProgressDialog
 		If job.Success Then
 			Dim result As Map = job.GetString.As(JSON).ToMap
 			If result.Get("s") = "error" Then
@@ -214,8 +247,8 @@ Sub GetUserInfo(user_email As String)
 
 			Dim users As List = result.Get("r")
 			For Each user As Map In users
-				lblViewUserName.Text = user.Get("user_name")
-				txtViewUserLocation.Text = user.Get("user_location")
+				lblViewUserName.Text = user.Get("name")
+				txtViewUserLocation.Text = user.Get("location")
 				If user.Get("online") = "Y" Then
 					lblViewUserStatus.Text = "Online"
 					lblViewUserStatus.TextColor = xui.Color_RGB(50, 205, 50)
@@ -227,9 +260,9 @@ Sub GetUserInfo(user_email As String)
 			If users.Size > 0 Then
 				pnlBlur.Visible = True
 				Drawer.GestureEnabled = False
-		#If Not(B4i)
+				#If Not(B4i)
 				btnMenu.Enabled = False
-		#End If
+				#End If
 			End If
 		Else
 			ShowConnectionError(job.ErrorMessage)
@@ -242,12 +275,12 @@ Sub GetUserInfo(user_email As String)
 End Sub
 
 #If B4A
-Sub btnMenu_Click
+Sub BtnMenu_Click
 	Drawer.LeftOpen = Not(Drawer.LeftOpen)
 End Sub
 #End If
 #If B4J
-Sub btnMenu_MouseClicked (EventData As MouseEvent)
+Sub BtnMenu_MouseClicked (EventData As MouseEvent)
 	Drawer.LeftOpen = Not(Drawer.LeftOpen)
 End Sub
 #End If
@@ -256,65 +289,52 @@ Sub CLVL_ItemClick (Index As Int, Value As Object)
 	Drawer.LeftOpen = False
 	Select Case Value
 		Case "Log in"
-			PageUser.strMode = "Login"
 			#If B4J
-			B4XPages.ShowPageAndRemovePreviousPages("Login")
-			#Else			
-			B4XPages.ShowPage("Login")
+			B4XPages.ClosePage(Me)
 			#End If
+			B4XPages.ShowPage("UserLogin")
 		Case "Register"
-			PageUser.strMode = "Register"
 			#If B4J
-			'B4XPages.ShowPageAndRemovePreviousPages("Register")
 			B4XPages.ClosePage(Me)
-			B4XPages.ShowPage("Register")
-			#Else			
-			B4XPages.ShowPage("Register")
 			#End If
+			B4XPages.ShowPage("UserRegister")
 		Case "Change Password"
-			PagePassword.strMode = "Change Password"
 			#If B4J
-			B4XPages.ShowPageAndRemovePreviousPages("PasswordChange")
-			#Else
-			B4XPages.ShowPage("PasswordChange")
-			#End If						
-		Case "About Me"
-			PageUser.strMode = "About"
-			#If B4J
-			'B4XPages.ShowPageAndRemovePreviousPages("About")
 			B4XPages.ClosePage(Me)
-			B4XPages.ShowPage("About")
-			#Else			
-			B4XPages.ShowPage("About")
-			#End If			
+			#End If
+			B4XPages.ShowPage("ChangePassword")
+		Case "User Profile"
+			#If B4J
+			B4XPages.ClosePage(Me)
+			#End If
+			B4XPages.ShowPage("UserProfile")
 		Case "Log out"
-			Wait For (KVS.PutMapAsync(CreateMap("Token": ""))) Complete (WriteSuccess As Boolean)
-			'Log(WriteSuccess)
-
-			Wait For (KVS.GetMapAsync(Array("Name", "Email", "Location", "ApiKey", "Token"))) Complete (M As Map)
-			If M.IsInitialized Then
-				Main.User.Initialize
-				Main.User.Name = M.GetDefault("Name", "")
-				Main.User.Email = M.GetDefault("Email", "")
-				Main.User.Location = M.GetDefault("Location", "")
-				Main.User.APIKey = M.GetDefault("ApiKey", "")
-				Main.User.Token = M.GetDefault("Token", "")
+			Wait For (KVS.PutMapAsync(CreateMap("ApiKey": Null, "Token": Null))) Complete (Success As Boolean)
+			If Success Then
+				Log("Api Key set to Null")
+				Dim newuser As User
+				Main.User = newuser
+				CLVM.Clear
+				Sleep(500)
+				LoadSlideMenu
+				Drawer.LeftOpen = True
+			Else
+				Log(LastException)
+				xui.MsgboxAsync(LastException, "E R R O R")
 			End If
-			
-			LoadSlideMenu
-			CLVM.Clear
 	End Select
 End Sub
 
 Public Sub LoadSlideMenu
-	'Log("LoadSlideMenu")
 	CLVL.Clear
-	If Main.User.Token.EqualsIgnoreCase("") Then
+	lblProfileName.Text = IIf(Main.User.Name = Null, "Guest", Main.User.Name)
+	If Main.User.ApiKey = Null Or Main.User.ApiKey.EqualsIgnoreCase("") Then
+		Log("LoadSlideMenu (Logout)")
 		CLVL.Add(CreateMenu(Chr(0xF090), "Log in", CLVL.AsView.Width), "Log in")
 		CLVL.Add(CreateMenu(Chr(0xF234), "Register", CLVL.AsView.Width), "Register")
 	Else
-		lblProfileName.Text = Main.User.Name
-		CLVL.Add(CreateMenu(Chr(0xF05A), "About Me", CLVL.AsView.Width), "About Me")
+		Log("LoadSlideMenu (Login)")
+		CLVL.Add(CreateMenu(Chr(0xF05A), "My Profile", CLVL.AsView.Width), "User Profile")
 		CLVL.Add(CreateMenu(Chr(0xF013), "Change Password", CLVL.AsView.Width), "Change Password")
 		CLVL.Add(CreateMenu(Chr(0xF08B), "Log out", CLVL.AsView.Width), "Log out")
 	End If
@@ -352,12 +372,11 @@ Sub ShowConnectionError(strError As String)
 	Else If strError.Contains("timeout") Then
 		xui.MsgboxAsync("Connection timeout.", "E R R O R")
 	Else
-		xui.MsgboxAsync(strError, True)
+		xui.MsgboxAsync(strError, "E R R O R")
 	End If
 End Sub
 
 Sub CLVM_ItemClick (Index As Int, Value As Object)
-	'If pnlBlur.Visible Then Return
 	GetUserInfo(Value)
 End Sub
 

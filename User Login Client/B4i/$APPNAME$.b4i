@@ -1,31 +1,31 @@
 ﻿Build1=Default,b4i.user.login
-File1=About.bil
-File10=PasswordReset.bil
-File11=Splash.bil
-File12=UserLogin.bil
+File1=ChangePassword.bil
+File10=Splash.bil
+File11=UserLogin.bil
+File12=UserProfile.bil
 File13=UserRegister.bil
 File2=default.png
-File3=HomePage.bil
-File4=LeftMenu.bil
-File5=ListItem.bil
-File6=loading.gif
+File3=LeftMenu.bil
+File4=ListItem.bil
+File5=loading.gif
+File6=MainPage.bil
 File7=MenuItem.bil
 File8=nav-menu-header-bg.jpg
-File9=PasswordChange.bil
-FileGroup1=Layouts
-FileGroup10=Layouts
-FileGroup11=Layouts
-FileGroup12=Layouts
-FileGroup13=Layouts
+File9=ResetPassword.bil
+FileGroup1=Layouts\Password
+FileGroup10=Layouts\Main
+FileGroup11=Layouts\User
+FileGroup12=Layouts\User
+FileGroup13=Layouts\User
 FileGroup2=Assets
-FileGroup3=Layouts
-FileGroup4=Layouts
-FileGroup5=Layouts
-FileGroup6=Assets
-FileGroup7=Layouts
+FileGroup3=Layouts\Main
+FileGroup4=Layouts\Main
+FileGroup5=Assets
+FileGroup6=Layouts\Main
+FileGroup7=Layouts\Main
 FileGroup8=Assets
-FileGroup9=Layouts
-Group=Default Group
+FileGroup9=Layouts\Password
+Group=Main
 Library1=b4xdrawer
 Library2=b4xgifview
 Library3=b4xpages
@@ -35,18 +35,21 @@ Library6=ijson
 Library7=keyvaluestore
 Library8=xui views
 Module1=|relative|..\B4XMainPage
-Module2=|relative|..\B4XPagePassword
-Module3=|relative|..\B4XPageUser
-Module4=|relative|..\Utility
+Module2=|relative|..\B4XPageChangePassword
+Module3=|relative|..\B4XPageResetPassword
+Module4=|relative|..\B4XPageUserLogin
+Module5=|relative|..\B4XPageUserProfile
+Module6=|relative|..\B4XPageUserRegister
+Module7=|relative|..\Utility
 NumberOfFiles=13
 NumberOfLibraries=8
-NumberOfModules=4
+NumberOfModules=7
 Version=8.51
 @EndOfDesignText@
 'Code module
 #Region  Project Attributes 
 	#ApplicationLabel: App
-	#Version: 2.0.0 
+	#Version: 2.1.0
 	'Orientation possible values: Portrait, LandscapeLeft, LandscapeRight and PortraitUpsideDown
 	#iPhoneOrientations: Portrait, LandscapeLeft, LandscapeRight
 	#iPadOrientations: Portrait, LandscapeLeft, LandscapeRight, PortraitUpsideDown
@@ -67,6 +70,7 @@ Version=8.51
 Sub Process_Globals
 	Public App As Application
 	Public NavControl As NavigationController
+	Public VALIDATE_EMAIL As Boolean = False
 	Public strURL As String = "http://192.168.50.42:17178/web/api/v1/"
 	Public User As User
 	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String)
