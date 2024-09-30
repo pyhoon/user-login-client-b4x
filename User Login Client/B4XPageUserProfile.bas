@@ -70,7 +70,7 @@ Sub BtnEdit_Click
 		txtUserName.mBase.Visible = True
 		txtUserLocation.mBase.Visible = True
 	Else
-		BtnEdit.Text = "E D I T"
+		'BtnEdit.Text = "E D I T"
 		If txtUserName.Text.Trim = "" Then
 			xui.MsgboxAsync("Please enter your Name", "E R R O R")
 			Return
