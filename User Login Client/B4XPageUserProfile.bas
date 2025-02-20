@@ -104,7 +104,7 @@ Sub UpdateProfile
 		data.Put("user_location", txtUserLocation.Text.Trim)
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.PutString(Main.strURL & "users/update", data.As(JSON).ToString)
+		job.PutString(Main.strURL & "users/update-profile", data.As(JSON).ToString)
 		job.GetRequest.SetHeader("Authorization", "Bearer " & Main.User.Token)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then

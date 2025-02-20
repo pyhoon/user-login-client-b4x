@@ -60,7 +60,8 @@ Version=10
 Sub Process_Globals
 	Private MainForm As Form
 	Public VALIDATE_EMAIL As Boolean = False
-	Public strURL As String = "http://192.168.50.42:17178/web/api/v1/"
+	'Public strURL As String = "http://192.168.50.42:17178/web/api/v1/"
+	Public strURL As String = "http://192.168.50.42:8080/api/v1/"
 	Public User As User
 	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String)
 End Sub
