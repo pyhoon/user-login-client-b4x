@@ -62,7 +62,7 @@ Private Sub BtnForgotPassword_Click
 	B4XPages.ShowPage("ResetPassword")
 End Sub
 
-Sub ShowConnectionError(strError As String)
+Sub ShowConnectionError (strError As String)
 	If strError.Contains("Unable to resolve host") Then
 		xui.MsgboxAsync("Connection failed.", "E R R O R")
 	Else If strError.Contains("timeout") Then
@@ -78,18 +78,20 @@ Sub LoginUser
 		Dim data As Map = CreateMap("email": txtUserEmail.Text.Trim, "password": txtPassword.Text.Trim)
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.PostString(Main.strURL & "users/login", data.As(JSON).ToString)
+		job.PostString(B4XPages.MainPage.URL & "users/login", data.As(JSON).ToString)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
-			Dim result As Map = job.GetString.As(JSON).ToMap
-			If result.Get("s") = "error" Then
-				xui.MsgboxAsync(result.Get("e"), "E R R O R")
+			Log(job.GetString)
+			Dim response As Map = job.GetString.As(JSON).ToMap
+			If response.Get("s") = "error" Then
+				Dim error As String = response.Get("e")
+				xui.MsgboxAsync(error, "E R R O R")
 				Return
 			End If
 
-			Dim users As List = result.Get("r")
-			If users.Size > 0 Then
-				Dim user As Map = users.Get(0)
+			Dim result As List = response.Get("r")
+			If result.Size > 0 Then
+				Dim user As Map = result.Get(0)
 				Main.User.Initialize
 				Main.User.Name = user.Get("name")
 				Main.User.Email = user.Get("email")
@@ -119,7 +121,9 @@ Sub LoginUser
 				xui.MsgboxAsync("No data", "E R R O R")
 			End If
 		Else
-			ShowConnectionError(job.ErrorMessage)
+			Dim response As Map = job.ErrorMessage.As(JSON).ToMap
+			Dim error As String = response.Get("e")
+			ShowConnectionError(error)
 		End If
 	Catch
 		Log("[B4XPageUserLogin] LoginUser: " & LastException.Message)

@@ -70,7 +70,7 @@ Private Sub BtnRegisterUser_Click
 	End If
 End Sub
 
-Sub ShowConnectionError(strError As String)
+Sub ShowConnectionError (strError As String)
 	If strError.Contains("Unable to resolve host") Then
 		xui.MsgboxAsync("Connection failed.", "E R R O R")
 	Else If strError.Contains("timeout") Then
@@ -90,7 +90,7 @@ Sub RegisterUser
 		data.Put("password", txtRegisterPassword1.Text.Trim)
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.PostString(Main.strURL & "users/register", data.As(JSON).ToString)
+		job.PostString(B4XPages.MainPage.URL & "users/register", data.As(JSON).ToString)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
 			Dim result As Map = job.GetString.As(JSON).ToMap

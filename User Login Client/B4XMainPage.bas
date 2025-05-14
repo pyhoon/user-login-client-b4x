@@ -8,12 +8,13 @@ Version=9.85
 '#CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
 'Ctrl + click to sync files: ide://run?file=%WINDIR%\System32\Robocopy.exe&args=..\..\Shared+Files&args=..\Files&FilesSync=True
 #End Region
-
-'Ctrl + click to export as zip: ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
+' LibDownloader: ide://run?file=%JAVABIN%\java.exe&Args=-jar&Args=%ADDITIONAL%\..\B4X\libget-non-ui.jar&Args=%PROJECT%
+' Export as zip: ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private Root As B4XView	
+	Private Root As B4XView
 	Private xui As XUI
+	Public URL As String = "http://192.168.50.42:8080/api/" ' Change to your Web API Server URL
 	Private KVS As KeyValueStore
 	Private Drawer As B4XDrawer
 	Private B4XGifView1 As B4XGifView
@@ -41,12 +42,12 @@ Sub Class_Globals
 End Sub
 
 Public Sub Initialize
-	'B4XPages.GetManager.LogEvents = True
+'	B4XPages.GetManager.LogEvents = True
 	xui.SetDataFolder("KVS")
 	KVS.Initialize(xui.DefaultFolder, "kvs.dat")
 End Sub
 
-Private Sub B4XPage_Created (Root1 As B4XView)	
+Private Sub B4XPage_Created (Root1 As B4XView)
 	Root = Root1
 	Wait For (ShowSplashScreen) Complete (Unused As Boolean)
 	Root.RemoveAllViews
@@ -54,15 +55,27 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	Drawer.Initialize(Me, "Drawer", Root, 400dip)
 	Drawer.LeftPanel.LoadLayout("LeftMenu")
 	Drawer.CenterPanel.LoadLayout("MainPage")
-	
 	LoadSlideMenu
 	If Retry Then
 		GetUserList
 	End If
+	'#If B4J
+	'CallSubDelayed3(Me, "SetScrollPaneBackgroundColor", CLVM, xui.Color_Transparent)
+	'#End If
 End Sub
 
+#If B4J
+'Private Sub SetScrollPaneBackgroundColor (View As CustomListView, Color As Int)
+'	Dim SP As JavaObject = View.GetBase.GetView(0)
+'	Dim V As B4XView = SP
+'	V.Color = Color
+'	Dim V As B4XView = SP.RunMethod("lookup", Array(".viewport"))
+'	V.Color = Color
+'End Sub
+#End If
+
 Private Sub B4XPage_Appear
-	If lblProfileName.IsInitialized And Not(Main.User.Name = Null) Then lblProfileName.Text = Main.User.Name
+	If lblProfileName.IsInitialized And NullOrEmpty(Main.User.Name) = False Then lblProfileName.Text = Main.User.Name
 	If Main.User.IsInitialized = False Then
 		Retry = True
 		Return
@@ -121,19 +134,27 @@ Sub GetToken As ResumableSub
 		Dim data As Map = CreateMap("email": Main.User.Email, "apikey": Main.User.ApiKey)
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.PostString(Main.strURL & "users/token", data.As(JSON).ToString)
+		job.PostString(URL & "users/token", data.As(JSON).ToString)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
-			Dim Map1 As Map = job.GetString.As(JSON).ToMap
-			If Map1.Get("s") = "error" Then
-				xui.MsgboxAsync(Map1.Get("e"), "E R R O R")
+			Dim response As Map = job.GetString.As(JSON).ToMap
+			If response.Get("s") = "error" Then
+				Dim error As String = response.Get("e")
+				xui.MsgboxAsync(error, "E R R O R")
 			Else
-				Dim result As List = Map1.Get("r")
-				Dim user As Map = result.Get(0)
-				Main.User.Token = user.Get("token")
+				Dim result As List = response.Get("r")
+				Dim token As Map = result.Get(0)
+				'Dim token_expiry As String = Token.Get("token_expiry")
+				'Log(token_expiry)
+				'Dim format As String = DateTime.DateFormat
+				'DateTime.DateFormat = "yyyy-MM-dd HH:mm:ss"
+				'Dim expiry As Long = DateTime.DateParse(token_expiry)
+				'Log(DateTime.Date(expiry))
+				'DateTime.DateFormat = format
+				Main.User.Token = token.Get("token")
 				'Log("Token=" & Main.User.Token)
-				Dim user As Map = CreateMap("Token": Main.User.Token)
-				Wait For (KVS.PutMapAsync(user)) Complete (Success As Boolean)
+				'Dim user As Map = CreateMap("Token": Main.User.Token)
+				Wait For (KVS.PutMapAsync(token)) Complete (Success As Boolean)
 				'For Each key As String In KVS.ListKeys
 				'	Log(key & ":" & KVS.Get(key))
 				'Next
@@ -159,13 +180,18 @@ Sub GetUserList
 			Return
 		End If
 		
-		If Main.User.Token = Null Or Main.User.Token.EqualsIgnoreCase("") Then
-			If Main.User.ApiKey = Null Or Main.User.ApiKey.EqualsIgnoreCase("") Then
+		If NullOrEmpty(Main.User.Token) Then
+			Log("No Token")
+			If NullOrEmpty(Main.User.Email) Then
+				Log("No Email")
+				Drawer.LeftOpen = True
+				Return
+			End If
+			If NullOrEmpty(Main.User.ApiKey) Then
 				Log("No Api key")
 				Drawer.LeftOpen = True
 				Return
 			End If
-			Log("No Token")
 			' Refreshing token
 			Wait For (GetToken) Complete (Success As Boolean)
 			Log("GetToken=" & Success)
@@ -179,10 +205,11 @@ Sub GetUserList
 
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.Download(Main.strURL & "users/list")
+		job.Download(URL & "users/list")
 		job.GetRequest.SetHeader("Authorization", "Bearer " & Main.User.Token)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
+			Log(job.GetString)
 			Dim result As Map = job.GetString.As(JSON).ToMap
 			If result.Get("s") = "error" Then
 				If 401 = result.Get("a") Then
@@ -229,24 +256,25 @@ Sub GetUserList
 	job.Release
 End Sub
 
-Sub GetUserInfo(user_email As String)
+Sub GetUserInfo (user_email As String)
 	Try
 		Log("[B4XMainPage] GetUserInfo")
 		Dim jsn As Map = CreateMap("email": user_email)
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.PostString(Main.strURL & "users/profile", jsn.As(JSON).ToString)
+		job.PostString(URL & "users/profile", jsn.As(JSON).ToString)
 		job.GetRequest.SetHeader("Authorization", "Bearer " & Main.User.Token)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
-			Dim result As Map = job.GetString.As(JSON).ToMap
-			If result.Get("s") = "error" Then
-				xui.MsgboxAsync(result.Get("e"), "E R R O R")
+			Dim response As Map = job.GetString.As(JSON).ToMap
+			If response.Get("s") = "error" Then
+				Dim error As String = response.Get("e")
+				xui.MsgboxAsync(error, "E R R O R")
 				Return
 			End If
 
-			Dim users As List = result.Get("r")
-			For Each user As Map In users
+			Dim results As List = response.Get("r")
+			For Each user As Map In results
 				lblViewUserName.Text = user.Get("name")
 				txtViewUserLocation.Text = user.Get("location")
 				If user.Get("online") = "Y" Then
@@ -257,7 +285,7 @@ Sub GetUserInfo(user_email As String)
 					lblViewUserStatus.TextColor = xui.Color_RGB(105, 105, 105)
 				End If
 			Next
-			If users.Size > 0 Then
+			If results.Size > 0 Then
 				pnlBlur.Visible = True
 				Drawer.GestureEnabled = False
 				#If Not(B4i)
@@ -309,26 +337,21 @@ Sub CLVL_ItemClick (Index As Int, Value As Object)
 			#End If
 			B4XPages.ShowPage("UserProfile")
 		Case "Log out"
-			Wait For (KVS.PutMapAsync(CreateMap("ApiKey": Null, "Token": Null))) Complete (Success As Boolean)
-			If Success Then
-				Log("Api Key set to Null")
-				Dim newuser As User
-				Main.User = newuser
-				CLVM.Clear
-				Sleep(500)
-				LoadSlideMenu
-				Drawer.LeftOpen = True
-			Else
-				Log(LastException)
-				xui.MsgboxAsync(LastException, "E R R O R")
-			End If
+			KVS.Remove("Token")
+			Dim newuser As User
+			newuser.Initialize
+			Main.User = newuser
+			CLVM.Clear
+			Sleep(500)
+			LoadSlideMenu
+			Drawer.LeftOpen = True
 	End Select
 End Sub
 
 Public Sub LoadSlideMenu
 	CLVL.Clear
-	lblProfileName.Text = IIf(Main.User.Name = Null, "Guest", Main.User.Name)
-	If Main.User.ApiKey = Null Or Main.User.ApiKey.EqualsIgnoreCase("") Then
+	lblProfileName.Text = IIf(NullOrEmpty(Main.User.Name), "Guest", Main.User.Name)
+	If NullOrEmpty(Main.User.ApiKey) Then
 		Log("LoadSlideMenu (Logout)")
 		CLVL.Add(CreateMenu(Chr(0xF090), "Log in", CLVL.AsView.Width), "Log in")
 		CLVL.Add(CreateMenu(Chr(0xF234), "Register", CLVL.AsView.Width), "Register")
@@ -355,10 +378,10 @@ End Sub
 Private Sub CreateList(ListText As String, ListStatus As String, Width As Long) As B4XView
 	Dim Height As Int = 60dip
 	Dim p As B4XView = xui.CreatePanel("")
-	p.SetLayoutAnimated(0, 0, 0, Width, Height)	
+	p.SetLayoutAnimated(0, 0, 0, Width, Height)
 	p.LoadLayout("ListItem")
 	lblName.Text = ListText
-	If ListStatus = "Y" Then		
+	If ListStatus = "Y" Then
 		pnlStatus.Color = xui.Color_Green
 	Else
 		pnlStatus.Color = xui.Color_Gray
@@ -366,7 +389,7 @@ Private Sub CreateList(ListText As String, ListStatus As String, Width As Long) 
 	Return p
 End Sub
 
-Sub ShowConnectionError(strError As String)
+Sub ShowConnectionError (strError As String)
 	If strError.Contains("Unable to resolve host") Then
 		xui.MsgboxAsync("Connection failed.", "E R R O R")
 	Else If strError.Contains("timeout") Then
@@ -390,4 +413,8 @@ End Sub
 
 Sub NoScroll_Click
 	Log("NoScroll")
+End Sub
+
+Sub NullOrEmpty (Value As Object) As Boolean
+	Return Value = Null Or Value.As(String).EqualsIgnoreCase("null") Or Value.As(String).EqualsIgnoreCase("")
 End Sub

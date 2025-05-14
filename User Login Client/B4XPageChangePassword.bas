@@ -58,7 +58,7 @@ Private Sub BtnChangePassword_Click
 	End If
 End Sub
 
-Sub ShowConnectionError(strError As String)
+Sub ShowConnectionError (strError As String)
 	If strError.Contains("Unable to resolve host") Then
 		xui.MsgboxAsync("Connection failed.", "E R R O R")
 	Else If strError.Contains("timeout") Then
@@ -78,7 +78,7 @@ Sub ChangePassword
 		data.Put("new", txtUserPassword1.Text.Trim)
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.PutString(Main.strURL & "users/change-password", data.As(JSON).ToString)
+		job.PutString(B4XPages.MainPage.URL & "users/change-password", data.As(JSON).ToString)
 		job.GetRequest.SetHeader("Authorization", "Bearer " & Main.User.Token)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
@@ -128,7 +128,7 @@ Sub RefreshToken
 		Dim data As Map = CreateMap("email": Main.User.Email, "apikey": Main.User.ApiKey)
 		Dim job As HttpJob
 		job.Initialize("", Me)
-		job.PostString(Main.strURL & "users/token", data.As(JSON).ToString)
+		job.PostString(B4XPages.MainPage.URL & "users/token", data.As(JSON).ToString)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
 			Dim Map1 As Map = job.GetString.As(JSON).ToMap

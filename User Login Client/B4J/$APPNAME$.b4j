@@ -1,5 +1,5 @@
 ﻿AppType=JavaFX
-Build1=Default,user.login.app.b4j
+Build1=Default,b4j.user.login
 File1=ChangePassword.bjl
 File10=ResetPassword.bjl
 File11=Splash.bjl
@@ -38,8 +38,8 @@ Library4=jcore
 Library5=jfx
 Library6=jokhttputils2
 Library7=json
-Library8=keyvaluestore
-Library9=xui views
+Library8=xui views
+Library9=keyvaluestore
 Module1=|relative|..\B4XMainPage
 Module2=|relative|..\B4XPageChangePassword
 Module3=|relative|..\B4XPageResetPassword
@@ -50,8 +50,9 @@ Module7=|relative|..\Utility
 NumberOfFiles=15
 NumberOfLibraries=9
 NumberOfModules=7
-Version=10
+Version=10.2
 @EndOfDesignText@
+' Version 2.00
 #Region Project Attributes 
 	#MainFormWidth: 600
 	#MainFormHeight: 600 
@@ -60,8 +61,7 @@ Version=10
 Sub Process_Globals
 	Private MainForm As Form
 	Public VALIDATE_EMAIL As Boolean = False
-	'Public strURL As String = "http://192.168.50.42:17178/web/api/v1/"
-	Public strURL As String = "http://192.168.50.42:8080/api/v1/"
+	'Public strURL As String = "http://192.168.50.42:8080/api/"
 	Public User As User
 	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String)
 End Sub

@@ -12,19 +12,19 @@ File6=MainPage.bil
 File7=MenuItem.bil
 File8=nav-menu-header-bg.jpg
 File9=ResetPassword.bil
-FileGroup1=Layouts\Password
-FileGroup10=Layouts\Main
-FileGroup11=Layouts\User
-FileGroup12=Layouts\User
-FileGroup13=Layouts\User
-FileGroup2=Assets
-FileGroup3=Layouts\Main
-FileGroup4=Layouts\Main
-FileGroup5=Assets
-FileGroup6=Layouts\Main
-FileGroup7=Layouts\Main
-FileGroup8=Assets
-FileGroup9=Layouts\Password
+FileGroup1=Layout\Password
+FileGroup10=Layout\Main
+FileGroup11=Layout\User
+FileGroup12=Layout\User
+FileGroup13=Layout\User
+FileGroup2=Asset
+FileGroup3=Layout\Main
+FileGroup4=Layout\Main
+FileGroup5=Asset
+FileGroup6=Layout\Main
+FileGroup7=Layout\Main
+FileGroup8=Asset
+FileGroup9=Layout\Password
 Group=Main
 Library1=b4xdrawer
 Library2=b4xgifview
@@ -44,34 +44,31 @@ Module7=|relative|..\Utility
 NumberOfFiles=13
 NumberOfLibraries=8
 NumberOfModules=7
-Version=8.51
+Version=8.8
 @EndOfDesignText@
 'Code module
-#Region  Project Attributes 
+#Region  Project Attributes
 	#ApplicationLabel: App
-	#Version: 2.1.0
+	#Version: 2.00
 	'Orientation possible values: Portrait, LandscapeLeft, LandscapeRight and PortraitUpsideDown
 	#iPhoneOrientations: Portrait, LandscapeLeft, LandscapeRight
 	#iPadOrientations: Portrait, LandscapeLeft, LandscapeRight, PortraitUpsideDown
 	#Target: iPhone, iPad
 	#ATSEnabled: True
-	#MinVersion: 9
+	#MinVersion: 11
 #End Region
-#Region Certificate
 #If RELEASE
 	#CertificateFile: ios_distribution.cer
-	#ProvisionFile: distribution_ad_hoc.mobileprovision	
-#End If
-#If DEBUG
+	#ProvisionFile: distribution.mobileprovision
+#Else
 	#CertificateFile: ios_development.cer
 	#ProvisionFile: development.mobileprovision
 #End If
-#End Region
+
 Sub Process_Globals
 	Public App As Application
 	Public NavControl As NavigationController
 	Public VALIDATE_EMAIL As Boolean = False
-	Public strURL As String = "http://192.168.50.42:17178/web/api/v1/"
 	Public User As User
 	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String)
 End Sub

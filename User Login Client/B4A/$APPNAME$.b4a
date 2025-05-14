@@ -26,15 +26,15 @@ FileGroup7=Layout\Main
 FileGroup8=Asset
 FileGroup9=Layout\Password
 Group=Main
-Library1=core
-Library2=b4xpages
-Library3=b4xgifview
-Library4=keyvaluestore
-Library5=xui views
-Library6=json
+Library1=b4xdrawer
+Library2=b4xgifview
+Library3=b4xpages
+Library4=core
+Library5=json
+Library6=keyvaluestore
 Library7=okhttputils2
-Library8=b4xdrawer
-ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="33"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.LightTheme)~\n~'End of default text.~\n~CreateResourceFromFile(Macro, Core.NetworkClearText)
+Library8=xui views
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="34"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.LightTheme)~\n~'End of default text.~\n~CreateResourceFromFile(Macro, Core.NetworkClearText) ' Comment this if using https protocol
 Module1=|relative|..\B4XMainPage
 Module2=|relative|..\B4XPageChangePassword
 Module3=|relative|..\B4XPageResetPassword
@@ -46,12 +46,12 @@ Module8=|relative|..\Utility
 NumberOfFiles=13
 NumberOfLibraries=8
 NumberOfModules=8
-Version=12.8
+Version=13.1
 @EndOfDesignText@
-#Region  Project Attributes 
+#Region  Project Attributes
 	#ApplicationLabel: App
-	#VersionCode: 4
-	#VersionName: 2.2
+	#VersionCode: 1
+	#VersionName: 2.00
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: False
@@ -62,9 +62,11 @@ Version=12.8
 	#IncludeTitle: False
 #End Region
 
+'#BridgeLogger: True
+
 Sub Process_Globals
+	Public ActionBarHomeClicked As Boolean
 	Public VALIDATE_EMAIL As Boolean = False
-	Public strURL As String = "http://192.168.50.42:17178/web/api/v1/"
 	Public User As User
 	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String)
 End Sub
@@ -73,16 +75,18 @@ Sub Globals
 
 End Sub
 
-Sub Activity_Create(FirstTime As Boolean)
+Sub Activity_Create (FirstTime As Boolean)
 	Dim pm As B4XPagesManager
 	pm.Initialize(Activity)
 End Sub
 
-'Template version: B4A-1.0
+'Template version: B4A-1.01
 #Region Delegates
 
 Sub Activity_ActionBarHomeClick
+	ActionBarHomeClicked = True
 	B4XPages.Delegate.Activity_ActionBarHomeClick
+	ActionBarHomeClicked = False
 End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
@@ -109,9 +113,6 @@ End Sub
 public boolean _onCreateOptionsMenu(android.view.Menu menu) {
 	 processBA.raiseEvent(null, "create_menu", menu);
 	 return true;
-	
 }
 #End If
 #End Region
-
-'Program code should go into B4XMainPage and other pages.
