@@ -1,0 +1,118 @@
+﻿Build1=Default,b4a.user.login
+File1=ChangePassword.bal
+File10=Splash.bal
+File11=UserLogin.bal
+File12=UserProfile.bal
+File13=UserRegister.bal
+File2=default.png
+File3=LeftMenu.bal
+File4=ListItem.bal
+File5=loading.gif
+File6=MainPage.bal
+File7=MenuItem.bal
+File8=nav-menu-header-bg.jpg
+File9=ResetPassword.bal
+FileGroup1=Layout\Password
+FileGroup10=Layout\Main
+FileGroup11=Layout\User
+FileGroup12=Layout\User
+FileGroup13=Layout\User
+FileGroup2=Asset
+FileGroup3=Layout\Main
+FileGroup4=Layout\Main
+FileGroup5=Asset
+FileGroup6=Layout\Main
+FileGroup7=Layout\Main
+FileGroup8=Asset
+FileGroup9=Layout\Password
+Group=Main
+Library1=b4xdrawer
+Library2=b4xgifview
+Library3=b4xpages
+Library4=core
+Library5=json
+Library6=keyvaluestore
+Library7=okhttputils2
+Library8=xui views
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="34"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.LightTheme)~\n~'End of default text.~\n~CreateResourceFromFile(Macro, Core.NetworkClearText) ' Comment this if using https protocol
+Module1=|relative|..\B4XMainPage
+Module2=|relative|..\B4XPageChangePassword
+Module3=|relative|..\B4XPageResetPassword
+Module4=|relative|..\B4XPageUserLogin
+Module5=|relative|..\B4XPageUserProfile
+Module6=|relative|..\B4XPageUserRegister
+Module7=Starter
+Module8=|relative|..\Utility
+NumberOfFiles=13
+NumberOfLibraries=8
+NumberOfModules=8
+Version=13.3
+@EndOfDesignText@
+#Region  Project Attributes
+	#ApplicationLabel: App
+	#VersionCode: 1
+	#VersionName: 2.00
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: portrait
+	#CanInstallToExternalStorage: False
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: True
+	#IncludeTitle: False
+#End Region
+
+'#BridgeLogger: True
+
+Sub Process_Globals
+	Public ActionBarHomeClicked As Boolean
+	Public VALIDATE_EMAIL As Boolean = False
+	Public User As User
+	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String, Token_Expiry As String)
+End Sub
+
+Sub Globals
+
+End Sub
+
+Sub Activity_Create (FirstTime As Boolean)
+	Dim pm As B4XPagesManager
+	pm.Initialize(Activity)
+End Sub
+
+'Template version: B4A-1.01
+#Region Delegates
+
+Sub Activity_ActionBarHomeClick
+	ActionBarHomeClicked = True
+	B4XPages.Delegate.Activity_ActionBarHomeClick
+	ActionBarHomeClicked = False
+End Sub
+
+Sub Activity_KeyPress (KeyCode As Int) As Boolean
+	Return B4XPages.Delegate.Activity_KeyPress(KeyCode)
+End Sub
+
+Sub Activity_Resume
+	B4XPages.Delegate.Activity_Resume
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+	B4XPages.Delegate.Activity_Pause
+End Sub
+
+Sub Activity_PermissionResult (Permission As String, Result As Boolean)
+	B4XPages.Delegate.Activity_PermissionResult(Permission, Result)
+End Sub
+
+Sub Create_Menu (Menu As Object)
+	B4XPages.Delegate.Create_Menu(Menu)
+End Sub
+
+#if Java
+public boolean _onCreateOptionsMenu(android.view.Menu menu) {
+	 processBA.raiseEvent(null, "create_menu", menu);
+	 return true;
+}
+#End If
+#End Region
