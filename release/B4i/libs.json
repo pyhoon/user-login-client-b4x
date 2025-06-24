@@ -1,0 +1,10 @@
+{
+    "Libraries": [
+        {
+            "Name": "B4XGifView.b4xlib",
+            "Platform": "B4X",
+            "Version": 1.12,
+            "Link": "https://www.b4x.com/android/forum/attachments/b4xgifview-b4xlib.119714/"
+        }
+    ]
+}
