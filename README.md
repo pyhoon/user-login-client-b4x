@@ -1,5 +1,7 @@
 # user-login-client-b4x
-B4XPages template for creating native clients connecting to User Login Server
+Project template for creating native B4X clients 
+
+Use together with User Login Server
 
 ## B4A
 ![B4A](../main/B4A.png)
