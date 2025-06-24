@@ -70,7 +70,6 @@ Sub BtnEdit_Click
 		txtUserName.mBase.Visible = True
 		txtUserLocation.mBase.Visible = True
 	Else
-		'BtnEdit.Text = "E D I T"
 		If txtUserName.Text.Trim = "" Then
 			xui.MsgboxAsync("Please enter your Name", "E R R O R")
 			Return
@@ -122,19 +121,13 @@ Sub UpdateProfile
 				Dim user As Map = CreateMap("Name": Main.User.Name, "Location": Main.User.Location)
 				Wait For (KVS.PutMapAsync(user)) Complete (Success As Boolean)
 				If Success Then
-					'Log(Main.User)
-					'For Each key As String In KVS.ListKeys
-					'	Log(key & ":" & KVS.Get(key))
-					'Next
 					lblUserName.Text = Main.User.Name
 					lblUserLocation.Text = Main.User.Location
 					xui.MsgboxAsync(result.Get("m"), "M E S S A G E")
 					BtnEdit.Text = "E D I T"
 					BtnCancel.Visible = False
 					txtUserName.mBase.Visible = False
-					'txtUserName.TextField.Visible = False
 					txtUserLocation.mBase.Visible = False
-					'txtUserLocation.TextField.Visible = False
 					lblUserName.Visible = True
 					lblUserLocation.Visible = True
 				Else

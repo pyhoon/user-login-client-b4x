@@ -97,8 +97,6 @@ Sub ChangePassword
 				Dim user As Map = users.Get(0)
 				Main.User.ApiKey = user.Get("api_key")
 				Main.User.Token = user.Get("token")
-				'Log("ApiKey=" & Main.User.ApiKey)
-				'Log("Token=" & Main.User.Token)
 				Dim user As Map = CreateMap("ApiKey": Main.User.ApiKey, "Token": Main.User.Token)
 				Wait For (KVS.PutMapAsync(user)) Complete (Success As Boolean)
 				If Success Then

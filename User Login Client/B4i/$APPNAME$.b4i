@@ -70,7 +70,7 @@ Sub Process_Globals
 	Public NavControl As NavigationController
 	Public VALIDATE_EMAIL As Boolean = False
 	Public User As User
-	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String)
+	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String, Token_Expiry As String)
 End Sub
 
 Private Sub Application_Start (Nav As NavigationController)

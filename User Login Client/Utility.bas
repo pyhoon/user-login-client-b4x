@@ -5,7 +5,6 @@ Type=StaticCode
 Version=12.8
 @EndOfDesignText@
 'Code module
-'Subs in this code module will be accessible from all modules.
 Sub Process_Globals
 
 End Sub

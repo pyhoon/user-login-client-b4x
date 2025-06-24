@@ -62,7 +62,6 @@ Private Sub BtnRegisterUser_Click
 		xui.MsgboxAsync("Password not match", "E R R O R")
 		Return
 	End If
-	'#If B4J
 	Dim sf As Object = xui.Msgbox2Async("Are you sure to register?", "C O N F I R M", "Y E S", "", "N O", Null)
 	Wait For (sf) Msgbox_Result (Result As Int)
 	If Result = xui.DialogResponse_Positive Then
@@ -98,13 +97,7 @@ Sub RegisterUser
 				xui.MsgboxAsync(result.Get("e"), "E R R O R")
 				Return
 			End If
-
-			'Dim users As List = result.Get("r")
 			xui.MsgboxAsync("User register successful", "M E S S A G E")
-			'xui.MsgboxAsync("Please check your email for account activation!", "Registration Successful")
-			'Log("Back to MainPage...")
-			'B4XPages.ShowPageAndRemovePreviousPages("MainPage")
-			'B4XPages.MainPage.LoadSlideMenu
 		Else
 			ShowConnectionError(job.ErrorMessage)
 		End If

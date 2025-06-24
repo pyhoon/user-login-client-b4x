@@ -8,7 +8,7 @@ Version=9.85
 '#CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
 'Ctrl + click to sync files: ide://run?file=%WINDIR%\System32\Robocopy.exe&args=..\..\Shared+Files&args=..\Files&FilesSync=True
 #End Region
-' LibDownloader: ide://run?file=%JAVABIN%\java.exe&Args=-jar&Args=%ADDITIONAL%\..\B4X\libget-non-ui.jar&Args=%PROJECT%
+' LibDownloader: ide://run?file=%JAVABIN%\java.exe&Args=-jar&Args=%ADDITIONAL%\..\B4X\libget-non-ui.jar&Args=%PROJECT%&Args=true
 ' Export as zip: ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
@@ -59,20 +59,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	If Retry Then
 		GetUserList
 	End If
-	'#If B4J
-	'CallSubDelayed3(Me, "SetScrollPaneBackgroundColor", CLVM, xui.Color_Transparent)
-	'#End If
 End Sub
-
-#If B4J
-'Private Sub SetScrollPaneBackgroundColor (View As CustomListView, Color As Int)
-'	Dim SP As JavaObject = View.GetBase.GetView(0)
-'	Dim V As B4XView = SP
-'	V.Color = Color
-'	Dim V As B4XView = SP.RunMethod("lookup", Array(".viewport"))
-'	V.Color = Color
-'End Sub
-#End If
 
 Private Sub B4XPage_Appear
 	If lblProfileName.IsInitialized And NullOrEmpty(Main.User.Name) = False Then lblProfileName.Text = Main.User.Name
@@ -94,7 +81,6 @@ Sub ShowSplashScreen As ResumableSub
 	Root.LoadLayout("Splash")
 	B4XPages.SetTitle(Me, "Loading...")
 	B4XGifView1.SetGif(File.DirAssets, "loading.gif")
-	'Sleep(2000)
 	
 	UserLoginPage.Initialize
 	UserProfilePage.Initialize
@@ -117,7 +103,6 @@ Sub ShowSplashScreen As ResumableSub
 		Main.User.APIKey = M.GetDefault("ApiKey", "")
 		Main.User.Token = M.GetDefault("Token", "")
 	End If
-	
 	Return True
 End Sub
 
@@ -125,12 +110,6 @@ Sub GetToken As ResumableSub
 	Dim Success As Boolean
 	Try
 		Log("[B4XMainPage] GetToken")
-		'Utility.ShowProgressDialog("Refreshing User Token...")
-		'Log(Main.User)
-		'For Each key As String In KVS.ListKeys
-		'	Log(key & ":" & KVS.Get(key))
-		'Next
-
 		Dim data As Map = CreateMap("email": Main.User.Email, "apikey": Main.User.ApiKey)
 		Dim job As HttpJob
 		job.Initialize("", Me)
@@ -143,21 +122,11 @@ Sub GetToken As ResumableSub
 				xui.MsgboxAsync(error, "E R R O R")
 			Else
 				Dim result As List = response.Get("r")
-				Dim token As Map = result.Get(0)
-				'Dim token_expiry As String = Token.Get("token_expiry")
-				'Log(token_expiry)
-				'Dim format As String = DateTime.DateFormat
-				'DateTime.DateFormat = "yyyy-MM-dd HH:mm:ss"
-				'Dim expiry As Long = DateTime.DateParse(token_expiry)
-				'Log(DateTime.Date(expiry))
-				'DateTime.DateFormat = format
-				Main.User.Token = token.Get("token")
-				'Log("Token=" & Main.User.Token)
-				'Dim user As Map = CreateMap("Token": Main.User.Token)
-				Wait For (KVS.PutMapAsync(token)) Complete (Success As Boolean)
-				'For Each key As String In KVS.ListKeys
-				'	Log(key & ":" & KVS.Get(key))
-				'Next
+				Dim user As Map = result.Get(0)
+				Main.User.Token = user.Get("token")
+				Main.User.Token_Expiry = user.Get("token_expiry")
+				Dim Token As Map = CreateMap("Token": Main.User.Token, "Token_Expiry": Main.User.Token_Expiry)
+				Wait For (KVS.PutMapAsync(Token)) Complete (Success As Boolean)
 			End If
 		Else
 			ShowConnectionError(job.ErrorMessage)
@@ -170,8 +139,6 @@ Sub GetToken As ResumableSub
 	Return Success
 End Sub
 
-' This is just an example
-' You can load other content
 Sub GetUserList
 	Try
 		Log("[B4XMainPage] GetUserList")
@@ -209,7 +176,6 @@ Sub GetUserList
 		job.GetRequest.SetHeader("Authorization", "Bearer " & Main.User.Token)
 		Wait For (job) JobDone(job As HttpJob)
 		If job.Success Then
-			Log(job.GetString)
 			Dim result As Map = job.GetString.As(JSON).ToMap
 			If result.Get("s") = "error" Then
 				If 401 = result.Get("a") Then

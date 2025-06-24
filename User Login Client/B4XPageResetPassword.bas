@@ -76,7 +76,6 @@ Sub ResetPassword
 				xui.MsgboxAsync(result.Get("e"), "E R R O R")
 				Return
 			End If
-			'Dim users As List = result.Get("r")
 			' if email not used, password default to "password"
 			Wait For (KVS.PutMapAsync(CreateMap("ApiKey": Null, "Token": Null))) Complete (Success As Boolean)
 			If Success Then

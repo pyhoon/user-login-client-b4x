@@ -104,16 +104,9 @@ Sub LoginUser
 				"ApiKey": Main.User.ApiKey)
 				Wait For (KVS.PutMapAsync(user)) Complete (Success As Boolean)
 				If Success Then
-					'Log(Main.User)
-					'For Each key As String In KVS.ListKeys
-					'	Log(key & ":" & KVS.Get(key))
-					'Next
-				
-					'xui.MsgboxAsync("Login successful", "M E S S A G E")
 					Log("Back to MainPage...")
 					B4XPages.ShowPageAndRemovePreviousPages("MainPage")
 					B4XPages.MainPage.LoadSlideMenu
-					'B4XPages.MainPage.GetToken
 				Else
 					xui.MsgboxAsync(LastException, "E R R O R")
 				End If

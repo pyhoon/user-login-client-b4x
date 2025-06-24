@@ -46,7 +46,7 @@ Module8=|relative|..\Utility
 NumberOfFiles=13
 NumberOfLibraries=8
 NumberOfModules=8
-Version=13.1
+Version=13.3
 @EndOfDesignText@
 #Region  Project Attributes
 	#ApplicationLabel: App
@@ -68,7 +68,7 @@ Sub Process_Globals
 	Public ActionBarHomeClicked As Boolean
 	Public VALIDATE_EMAIL As Boolean = False
 	Public User As User
-	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String)
+	Type User (Name As String, Email As String, Location As String, ApiKey As String, Token As String, Token_Expiry As String)
 End Sub
 
 Sub Globals
